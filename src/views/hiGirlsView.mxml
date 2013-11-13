@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- containers\mobile\views\EmployeeMainView.mxml -->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
+		title="Girl!发现美" creationComplete="init(event)" menuKeyPressed="view1_menuKeyPressedHandler(event)"
+		actionBarVisible="true" destructionPolicy="never" backgroundColor="#333333"
+		>
+	
+		<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.myLabel {
+			color: #ffffff;
+			textAlign:center; 
+			paddingBottom:10;
+		}
+		
+	</fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			/*import com.adsmogo.AdsMogoEvent;
+			import com.adsmogo.AdsMogoInterstitial;
+			import com.adsmogo.AdsMogoView;*/
+			import com.greensock.TweenLite;
+			import com.ssd.ane.AndroidExtensions;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.components.Image;
+			import spark.components.Label;
+			import spark.components.VGroup;
+			
+			import comm.CheckUpdata;
+			import comm.Config;
+			import comm.jxmlLoad;
+			import net.yoy8.youmiane.callYoumi;
+			
+			private var con:callYoumi = new callYoumi();
+			private var callYoumiSizeID:int;
+			
+			[Bindable]
+			private var rowTotals:int = 0;
+			private var TileGroupPadding:Number=10;
+			private var BorderPadding:Number=10;
+			private var defaultImgWidth:Number=305;
+			private var defaultImgHeight:Number=150;
+			private var _ColumnCount:int=2;
+			private var _loadNum:int=0;
+			private var _loadTotalNum:int=0;
+			private var _labelObjArr:Array=[];
+			
+			private var _adTimer:Timer;
+			
+			protected function view1_menuKeyPressedHandler(event:FlexEvent):void
+			{
+				trace("Menu key was pressed");
+				/*if(adsMogoShow)
+					hideADmob();
+				else
+					showADmob();*/
+			}
+			protected function onItemClick(event:MouseEvent):void
+			{
+				switch (event.currentTarget.label) {
+					case "退出" :
+						trace("退出");
+						NativeApplication.nativeApplication.exit();
+						break;
+					case "关于" :
+						trace("关于");
+						navigator.pushView(views.about);
+						break;
+					case "检查更新" :
+						trace("检查更新");
+						CheckUpdata.initialize(true);
+						break;
+					default :
+						trace( "Error");
+				}
+			}
+			
+			private function rensetTileGroup(_imgurl:String,_name:String,_title:String):void
+			{				
+				
+				var _img:Image=new Image;
+				var _VGroup:VGroup=new VGroup();
+				_img.cacheAsBitmap=true;
+				_img.source=_imgurl;
+				_img.scaleMode="zoom";
+				_img.smooth=true ;
+				_img.width=defaultImgWidth;
+				
+				var _txt:Label=new Label();
+				_txt.styleName="myLabel";
+				_txt.text=_title;
+				_txt.alpha=0;
+				_txt.width=defaultImgWidth;
+				_labelObjArr[_name]=_txt;
+				_VGroup.addElement(_img);
+				_VGroup.addElement(_txt);
+				tileGroup.addElement(_VGroup);
+				
+				_img.name=_name;
+				_img.alpha=0;
+				_img.addEventListener(MouseEvent.CLICK,onClick);					
+				_img.addEventListener(FlexEvent.CREATION_COMPLETE, CreateCompleteHandler);
+				
+			}
+			private function CreateCompleteHandler(event:FlexEvent):void{
+				_loadNum++;
+				//_labelObjArr[event.currentTarget.name].visible=true;
+				TweenLite.to(_labelObjArr[event.currentTarget.name], 1, {alpha:1,delay:1});
+				TweenLite.to(event.currentTarget, 1, {alpha:1});
+				
+				if(_loadNum>=_loadTotalNum){
+					pre.visible=false;
+				}
+			}
+			
+			// load xml
+			private function init(event:FlexEvent):void{
+				Config.CURRENT_ID=0
+				defaultImgWidth = Math.floor((this.width-BorderPadding*2)/2);
+				var rss:jxmlLoad = new jxmlLoad();
+				var rssReq:URLRequest = new URLRequest(Config.SERVERURL);			
+				rss.load(rssReq);
+				rss.addEventListener(Event.COMPLETE, rssLoaded);
+				
+				function rssLoaded(event:Event):void{
+					_loadTotalNum=rss._items.length();
+					for(var i:int=0;i<_loadTotalNum;i++){
+						var _catlogimg:String=rss._items[i].catlog;
+						var _catlogxml:String=rss._items[i].xml;
+						var _catlogname:String=rss._items[i].name;
+						Config.CatLogXmlArr[i]=_catlogxml;
+						Config.CacheImgArr[i]=_catlogimg;
+						rensetTileGroup(_catlogimg,_catlogxml,_catlogname);
+						
+					}
+				}
+				initYouMiAD();
+			}
+			
+			private function onClick(e:MouseEvent):void{
+				var _data:String=e.currentTarget.name;				
+				if(_data.indexOf("share.xml")==-1){
+					navigator.pushView(views.photoDetail2,_data);
+					setADnum();
+				}else{
+					goShare();
+				}
+			}
+			
+			
+			private function setADnum():void
+			{
+				Config.ViewNum++;
+				if(Config.ViewNum>=3){
+					Config.ViewNum=0;
+					con.callYoumiShowbanner(2,2);   //显示无积分广告条  1是320×50，2为468×60，3为728×90，4为300×250.
+				}
+			}
+			
+			private function numericstepper_changeHandler(event:Event):void
+			{
+				
+				//tileGroup.verticalScrollPosition = currentBorder.y - tileGroup.paddingTop;
+			}
+			
+			//share
+			private function goShare():void{
+				var subject:String="推荐好应用：";
+				var message:String=Config.SHARE_MSG;
+				AndroidExtensions.shareText(subject, message, "Share:");
+			}
+			
+			/*private var admob:Admob;
+			//init google AD
+			private function initADmob():void{
+				admob=Admob.getInstance();
+				if (admob.isSupported)
+				{
+					admob.createADView(AdSize.BANNER, Config.ADmob_ID); 
+					admob.addToStage(
+					admob.load(false);			
+				}
+			}*/
+		
+			
+			protected function initYouMiAD():void{				
+				con.callYoumiInit("c79c8b055c1e831b", "464778ccd37b7e3e",false);
+			}
+		]]>
+	</fx:Script>
+	<s:titleContent>
+		<s:Label text="Girl!发现美" textAlign="center" color="0xffffff" width="100%" />
+	</s:titleContent>
+	<s:Scroller width="100%" height="100%"  horizontalScrollPolicy="off">
+		<s:TileGroup id="tileGroup"
+					 horizontalGap="{BorderPadding}" verticalGap="{BorderPadding}" requestedColumnCount="{_ColumnCount}"/>
+	</s:Scroller>
+	<s:BusyIndicator id="pre" symbolColor="white" x="{(this.width-pre.width)/2}" y="{(this.height-pre.height)/2}"/>
+	
+	<s:viewMenuItems>
+		<s:ViewMenuItem label="检查更新" click="onItemClick(event)"/>
+		<s:ViewMenuItem label="关于" click="onItemClick(event)"/>
+		<s:ViewMenuItem label="退出" click="onItemClick(event)"/>
+	</s:viewMenuItems>
+		
+</s:View>

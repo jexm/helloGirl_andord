@@ -1,0 +1,133 @@
+10
+
+dir
+0
+https://github.com:443/jexm/helloGirl_andord.git/src
+https://github.com:443/jexm/helloGirl_andord.git
+add
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+incomplete
+a4208eac-0310-0b98-fb10-ce57b7db7bff
+
+assets
+dir
+
+
+
+add
+
+default.swf
+file
+
+
+
+add
+
+
+
+
+
+has-props
+has-prop-mods
+
+default.jpg
+file
+
+
+
+add
+
+
+
+
+
+has-props
+has-prop-mods
+
+events
+dir
+
+
+
+add
+
+skin
+dir
+
+
+
+add
+
+default.fla
+file
+
+
+
+add
+
+
+
+
+
+has-props
+has-prop-mods
+
+itemRenderer
+dir
+
+
+
+add
+
+icon
+dir
+
+
+
+add
+
+comm
+dir
+
+
+
+add
+
+hiGirls.mxml
+file
+
+
+
+add
+
+views
+dir
+
+
+
+add
+
+hiGirls-app.xml
+file
+
+
+
+add
+

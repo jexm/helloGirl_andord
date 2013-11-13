@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- containers\mobile\views\EmployeeMainView.mxml -->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		title="Girl!发现美" creationComplete="init(event)"
+		actionBarVisible="true" destructionPolicy="never" backgroundColor="#333333"
+		menuKeyPressed="view1_menuKeyPressedHandler(event)">
+	
+		<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.myLabel {
+			color: #ffffff;
+			textAlign:center; 
+			paddingBottom:10;
+		}
+		
+	</fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			protected function onItemClick(event:MouseEvent):void
+			{
+				switch (event.currentTarget.label) {
+					case "退出" :
+						trace("Add selected");
+						break;
+					case "关于" :
+						trace("Cancel selected");
+						break;
+					case "检查更新" :
+						trace("Delete selected");
+						break;
+					default :
+						trace( "Error");
+				}
+			}
+		
+			protected function view1_menuKeyPressedHandler(event:FlexEvent):void
+			{
+				trace("Menu key was pressed");
+			}
+			
+			// load xml
+			private function init(event:FlexEvent):void{
+				
+				
+			}
+			
+			private function onClick(e:MouseEvent):void{
+				
+			}
+			
+			private function numericstepper_changeHandler(event:Event):void
+			{
+				
+				//tileGroup.verticalScrollPosition = currentBorder.y - tileGroup.paddingTop;
+			}
+			
+			//share
+			private function goShare(){
+				trace("goShare")
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+		<s:Image source="http://image.zcool.com.cn/bigPic/1381718644722.jpg" width="100%" height="100%" scaleMode="zoom"/>
+	<s:viewMenuItems>
+		<s:ViewMenuItem label="检查更新" click="onItemClick(event)"/>
+		<s:ViewMenuItem label="关于" click="onItemClick(event)"/>
+		<s:ViewMenuItem label="退出" click="onItemClick(event)"/>
+	</s:viewMenuItems>
+	
+</s:View>

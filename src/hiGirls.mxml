@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ViewNavigatorApplication xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
+							firstView="views.hiGirlsView" applicationDPI="240" 
+							creationComplete="init()"
+							splashScreenImage="@Embed('default.swf')" splashScreenMinimumDisplayTime="3000" 
+							splashScreenScaleMode="zoom" >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;			
+			import comm.CheckUpdata;
+			import comm.CheckWeb;
+			import comm.Config;			
+			import pl.mateuszmackowiak.nativeANE.notifications.Toast;
+			import mx.events.FlexEvent;			
+			
+			private var _blackClickNum:int=0;
+			protected function init():void{
+				CheckWeb.initialize();
+				CheckUpdata.initialize();
+				NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, eMenuBarHandler);
+			}
+			
+			//键盘事件
+			private function eMenuBarHandler(e:KeyboardEvent):void
+			{
+				switch (e.keyCode)
+				{
+					case Keyboard.MENU :
+						//mx.core.FlexGlobals.topLevelApplication.viewMenuOpen=true;
+						break;
+					
+					case Keyboard.BACK :
+						e.preventDefault();
+						if(Config.CURRENT_ID==1){
+							Config.CURRENT_ID=0;
+							
+						}else{
+							_blackClickNum++;
+							
+							if(_blackClickNum>=2){
+								NativeApplication.nativeApplication.exit();
+							}
+							var _timer:Timer = new Timer(2000);
+							_timer.addEventListener(TimerEvent.TIMER, _timerHandler);
+							_timer.start();
+							function _timerHandler(e:TimerEvent):void{
+								_blackClickNum=0;
+								_timer.stop();
+							}
+							trace("再按一次退出该程序");
+							Toast.show("再按一次退出该程序", Toast.LENGTH_SHORT);
+						}
+						break;
+				}
+			}
+		]]>
+	</fx:Script>
+</s:ViewNavigatorApplication>

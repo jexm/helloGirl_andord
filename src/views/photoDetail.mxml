@@ -1,0 +1,225 @@
+<?xml version="1.0"?>
+<!-- controls\image\ImageCaching.mxml -->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" actionBarVisible="false" viewActivate="init(event)" backgroundColor="#333333">
+	
+		<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.myImg {
+			enableLoadingState: true;
+		}
+
+	</fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			
+			import flash.events.TransformGestureEvent;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			
+			import spark.components.BusyIndicator;
+			import spark.events.ViewNavigatorEvent;
+			
+			import comm.Config;
+			import comm.jxmlLoad;
+			
+			protected var arrList:ArrayList = new ArrayList();
+			[Bindable]
+			private var people:ArrayCollection=new ArrayCollection();
+			private var _thisid:int=0;
+			[Bindable]private var _pageTip:String;
+			private var _imgArr:Array=[];
+			private var _localUrlArr:Array=[];
+			
+			
+			private var _thisImgName:String;
+			protected var urlLoader:URLLoader = new URLLoader();
+			private var storageDir:File = File.applicationStorageDirectory; // 当前 AIR 程序专属存储文件夹         applicationDirectory -- 当前 AIR 程序安装文件夹
+
+			private var myFile:File=new File;
+			[Bindable]protected var files:ArrayCollection;
+			
+			//private var pre:BusyIndicator=new BusyIndicator();
+			
+			
+			protected function loadImage(_url:String):void
+			{
+				myFile= storageDir.resolvePath(_url);
+				trace("myFile.url:"+myFile.nativePath)
+				if (!myFile.exists)
+				{
+					trace("文件为存在，正在下载。。。。");
+					urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
+					urlLoader.load(new URLRequest(_imgArr[_thisid]));
+					urlLoader.addEventListener(Event.COMPLETE,onImageLoaded);
+					urlLoader.addEventListener(ProgressEvent.PROGRESS,onProgress);
+					urlLoader.addEventListener(IOErrorEvent.IO_ERROR,ioErrorHandler);
+				}
+				else 
+				{
+					trace("文件已经存在，无须下载。。。。"+myFile);
+					img.source = myFile.url;
+					img.alpha=0;
+					TweenLite.to(img, 1, {alpha:1});
+					pre.visible=false;
+				}
+				initMove()
+				
+			}
+			protected function ioErrorHandler(event:ErrorEvent):void{
+				trace("很抱歉的通知您,该图片可能丢失");
+				_pageTip = "很抱歉的通知您,该图片可能丢失";
+			}
+			protected function onProgress(event:ProgressEvent):void{
+				trace("正在下载，请稍候。。。。。。");
+				pre.visible=true;
+				img.alpha=0;
+			}
+			protected function onImageLoaded(event:Event):void 
+			{
+				pre.visible=false;
+				TweenLite.to(img, 1, {alpha:1});
+				
+				
+				var fileStream:FileStream = new FileStream();
+				fileStream.open(myFile, FileMode.WRITE);
+				fileStream.writeBytes(urlLoader.data);
+				fileStream.close(); 
+				img.source = myFile.url;
+				trace("Image: "+ myFile.nativePath + " loaded and saved locally.")
+				urlLoader.removeEventListener(Event.COMPLETE,onImageLoaded);
+				storageDir.addEventListener(FileListEvent.DIRECTORY_LISTING,onDirList);
+				storageDir.getDirectoryListingAsync();
+			}
+			
+			// Show the current contents of the app storage directory
+			protected function onDirList(e:FileListEvent):void
+			{
+				files = new ArrayCollection(e.files);
+				storageDir.removeEventListener(FileListEvent.DIRECTORY_LISTING,onDirList);
+			}
+			
+			protected function init(e:ViewNavigatorEvent):void {
+				trace("data:::"+data)
+				Config.CURRENT_ID=1;
+				this.addEventListener(TransformGestureEvent.GESTURE_SWIPE,swipeHandler);
+				var _url:String=String(data);
+				var rand:String = new Date().time.toString()
+				var arr:Array = [];
+				var rss:jxmlLoad = new jxmlLoad();
+				var rssReq:URLRequest = new URLRequest(_url);			
+				rss.load(rssReq);
+				rss.addEventListener(Event.COMPLETE, rssLoaded);
+				
+				function rssLoaded(event:Event):void{
+					for(var i:int=0;i<rss._items.length();i++){
+						var _catlogimg:String=rss._items[i];
+						_imgArr.push(_catlogimg);
+						trace("_catlogimg:"+_imgArr);
+						
+					}
+					_pageTip = "1/"+_imgArr.length;
+					var _photoName:String=formatName(_imgArr[_thisid]);
+					loadImage(_photoName);
+				}
+			}
+			
+			
+			protected function swipeHandler(event:TransformGestureEvent):void {
+				
+				if (event.offsetX == 1) {
+					prev();
+					
+				}
+				else if (event.offsetX == -1) {
+					next();
+				}
+				
+			}
+			
+			private function  prev():void{
+				
+				_thisid--;
+				if(_thisid<0){
+					img.alpha=0;
+					_thisid=_imgArr.length-1;
+				}
+				
+				var _photoName:String=formatName(_imgArr[_thisid]);
+				loadImage(_photoName);
+				_pageTip =(_thisid+1)+ "/"+_imgArr.length;
+				
+			}
+			private function  next():void{
+				_thisid++;
+				if(_thisid>_imgArr.length-1){
+					_thisid=0;
+				}
+				var _photoName:String=formatName(_imgArr[_thisid]);
+				loadImage(_photoName);
+				_pageTip =(_thisid+1)+ "/"+_imgArr.length;
+				
+			}
+			
+			protected function formatName(_url:String):String{
+				var _savenameArr:Array = _url.split("/"); 
+				return _savenameArr[_savenameArr.length-1];
+			}
+			
+			
+			//动画
+			import mx.events.EffectEvent;
+			import spark.effects.Move;
+			private function initMove():void
+			{
+				trace("move")
+				_moveEffect = new Move();
+				_moveEffect.duration = 450;
+				_moveEffect.target = img;
+				
+				var timer:Timer = new Timer(1000);
+				timer.addEventListener(TimerEvent.TIMER, timerHandler);
+				timer.start();
+			}
+			
+			private function timerHandler(event:TimerEvent):void
+			{
+				var xDest:int = img.x + getRandom(-100, 100);
+				var yDest:int = img.y + getRandom(-100, 100);
+				
+				if(xDest < 0) xDest = 0;
+				else if(xDest > width) xDest = parent.width;
+				
+				if(yDest < 0) yDest = 0;
+				else if(yDest > height) yDest = parent.height;
+				
+				_moveEffect.xFrom = img.x;
+				_moveEffect.xTo = xDest;
+				_moveEffect.yFrom = img.y;
+				_moveEffect.yTo = yDest;
+				
+				_moveEffect.play();
+			}
+			
+			private function getRandom(lowLimit:Number, highLimit:Number):int
+			{
+				return Math.floor(Math.random() * (1 + highLimit - lowLimit)) + lowLimit;
+			}
+			
+			private var _moveEffect:Move;
+			
+		]]>
+	</fx:Script>
+	
+	<s:Image  styleName="myImg"  id="img" top="0" bottom="0" left="0" right="0" source="{_imgArr[0]}" scaleMode="letterbox"  smooth="true" smoothingQuality="high" width="{this.width}" height="{this.height}"/>
+	<s:BusyIndicator id="pre" symbolColor="white" x="{(this.width-pre.width)/2}" y="{(this.height-pre.height)/2}"/>
+	<s:Label text="{_pageTip}" bottom="15" width="{this.width}"  textAlign="center"/>
+	<s:Button label="上一张"  bottom="5"  click="prev()" skinClass="skin.buttonSkin_prev" />
+	<s:Button label="下一张"  bottom="5" right="0"  click="next()" skinClass="skin.buttonSkin_next" />
+</s:View>

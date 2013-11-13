@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!-- controls\image\ImageCaching.mxml -->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" actionBarVisible="false" backgroundColor="#333333"
+			    viewActivate="init()"
+			   >
+		<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		#pagedList
+		{
+			backgroundColor:#333333;
+			alternating-item-colors:#333333;
+			areaFill:#333333;
+		}
+		
+	</fx:Style>
+	<fx:Script>
+		<![CDATA[
+			
+			import spark.events.ViewNavigatorEvent;
+			import comm.Config;
+			import comm.jxmlLoad;
+			
+			import itemRenderer.PagedListSkin;
+			
+			protected function init():void {
+				Config.CURRENT_ID=1;
+				var _url:String=String(data);
+				var rand:String = new Date().time.toString()
+				var arr:Array = [];
+				var rss:jxmlLoad = new jxmlLoad();
+				var rssReq:URLRequest = new URLRequest(_url);			
+				rss.load(rssReq);
+				rss.addEventListener(Event.COMPLETE, rssLoaded);
+				
+				function rssLoaded(event:Event):void{
+					for(var i:int=0;i<rss._items.length();i++){
+						var _catlogimg:String=rss._items[i];
+						arrlist.addItem({ico:_catlogimg});
+					}
+				}
+			}
+			
+		
+			//skinClass="skins.PagedListSkin"
+		]]>
+	</fx:Script>
+	
+	<s:List id="pagedList"
+			width="100%" height="100%"
+			verticalScrollPolicy="off" horizontalScrollPolicy="on"
+			pageScrollingEnabled="true" scrollSnappingMode="none"
+			itemRenderer="itemRenderer.CustomIconItemRenderer" skinClass="itemRenderer.PagedListSkin" styleName="myList">
+		<s:layout>
+			<s:TileLayout orientation="rows" requestedRowCount="1" 
+						  columnWidth="{pagedList.width}" rowHeight="{pagedList.height}" 
+						  verticalGap="0" horizontalGap="0" />
+		</s:layout>
+		<s:dataProvider>
+			<s:ArrayList id="arrlist">
+			</s:ArrayList>
+		</s:dataProvider>
+		
+	</s:List>
+	
+</s:View>
